@@ -13,7 +13,7 @@ import javax.ws.rs.core.MediaType;
 @Path("/Auth")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-public interface Resource {
+public interface AuthResource {
 
     @GET
     @Path("/ping")

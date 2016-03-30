@@ -130,7 +130,9 @@ public class JWTRequestFilter implements ContainerRequestFilter {
         }
 
         public String getRole() {
-            return roles.getRole( (int) (long) this.get( "role" ) );
+            if( this.containsKey("role") )
+                return roles.getRole( (int) (long) this.get( "role" ) );
+            else return "USER";
         }
     }
 

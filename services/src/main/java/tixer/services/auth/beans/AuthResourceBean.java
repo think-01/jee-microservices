@@ -1,7 +1,7 @@
 package tixer.services.auth.beans;
 
 import tixer.data.dao.UserManager;
-import tixer.services.auth.Resource;
+import tixer.services.auth.AuthResource;
 import tixer.services.auth.vo.request.LoginRequest;
 import tixer.services.auth.vo.response.LoginResponse;
 
@@ -18,7 +18,7 @@ import tixer.system.beans.KeyFactory;
 import java.util.NoSuchElementException;
 
 @Stateless
-public class ResourceBean implements Resource {
+public class AuthResourceBean implements AuthResource {
 
     @EJB
     RolesManager roles;
