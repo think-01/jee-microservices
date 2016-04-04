@@ -1,7 +1,8 @@
 package tixer.services.orders;
 
+import tixer.data.pojo.CartItem;
 import tixer.services.orders.vo.request.NewItemRequest;
-import tixer.services.orders.vo.response.NewItemResponse;
+import tixer.services.orders.vo.response.CartResponse;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
@@ -26,11 +27,41 @@ public interface OrdersResource {
     @Path("/add")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed( {"ANY"} )
-    public NewItemResponse add_item( NewItemRequest item );
+    public CartItem add_item( NewItemRequest item );
 
     @POST
     @Path("/group")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed( {"ANY"} )
     public Object make_order( Collection<Integer> items );
+
+    @GET
+    @Path("/group")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed( {"ANY"} )
+    public Object make_order();
+
+    @POST
+    @Path("/remove")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed( {"ANY"} )
+    public void remove( Collection<Integer> items );
+
+    @GET
+    @Path("/remove")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed( {"ANY"} )
+    public void remove();
+
+    @GET
+    @Path("/cart")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed( {"ANY"} )
+    public Object cart();
+
+    @POST
+    @Path("/get_shipments")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed( {"ANY"} )
+    public Object get_shipments( Collection<Integer> items );
 }

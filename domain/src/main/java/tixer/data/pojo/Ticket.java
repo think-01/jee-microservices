@@ -16,6 +16,7 @@ public class Ticket {
     public Integer count;
 
     public Double price;
+    public Double vat;
 
     @ManyToOne(fetch=FetchType.EAGER)
     @JoinColumn( name="events_schedules_id" )
