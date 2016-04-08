@@ -1,5 +1,6 @@
 package tixer.data.dao;
 
+import tixer.data.enums.ShipmentType;
 import tixer.data.pojo.CartItem;
 import tixer.data.pojo.Ticket;
 
@@ -8,6 +9,7 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.ws.rs.WebApplicationException;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -27,8 +29,11 @@ public class TicketsManager {
 
     public final static String type = "TICKET";
 
-    public CartItem book( Integer id, Integer quantity, Integer user_id )
+    public CartItem book( Integer id, Integer quantity, ShipmentType shipment, Integer user_id )
     {
+        if( shipment == ShipmentType.ON_EVENT )
+            throw new WebApplicationException( "Bad shipment type specified. You can't receive a ticket on event this ticket is issued for :)", 400 );
+
         Ticket ticket = em.createQuery("SELECT t FROM Ticket t WHERE t.id = :id", Ticket.class)
                 .setParameter("id", id)
                 .getSingleResult();
@@ -52,7 +57,8 @@ public class TicketsManager {
                         ticket.price,
                         ticket.vat,
                         quantity,
-                        0
+                        0,
+                        shipment
                 );
             }
         }

@@ -7,6 +7,8 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
 import com.nimbusds.jwt.SignedJWT;
+import tixer.system.security.JWTPrincipal;
+import tixer.system.security.JWTSecurityContext;
 
 import javax.annotation.Priority;
 import javax.annotation.security.RolesAllowed;
@@ -84,7 +86,26 @@ public class JWTRequestFilter implements ContainerRequestFilter {
                             {
                                 RolesAllowed rolesAnnotation = method.getAnnotation(RolesAllowed.class);
 
-                                JWTPrincipal principal = new JWTPrincipal(claims);
+                                JWTPrincipal principal = new JWTPrincipal();
+
+                                principal.me = Integer.parseInt( claims.getIssuer() );
+
+                                try {
+                                    principal.sub = Integer.parseInt(claims.getSubject());
+                                } catch ( Exception e ) {
+                                    principal.sub = 0;
+                                }
+
+                                try {
+                                    principal.role = roles.getRole( claims.getIntegerClaim("role") );
+                                } catch ( Exception e ) {
+                                    principal.role = "USER";
+                                }
+
+                                try { principal.email = claims.getStringClaim( "email" ); } catch ( Exception e ) {}
+                                try { principal.name = claims.getStringClaim( "name" ); } catch ( Exception e ) {}
+                                try { principal.company = claims.getIntegerClaim("company"); } catch ( Exception e ) {}
+                                try { principal.data = claims.getClaim("data" ); } catch ( Exception e ) {}
 
                                 if(
                                     Arrays.stream( rolesAnnotation.value() )
@@ -116,57 +137,6 @@ public class JWTRequestFilter implements ContainerRequestFilter {
                 throw new NotAuthorizedException( "No Authorization header", 401 );
         }
 
-    }
-
-    public class JWTPrincipal extends HashMap<String, Object> implements Principal {
-
-        public JWTPrincipal( final JWTClaimsSet claim ) {
-            claim.getClaims().forEach( (k,v) -> this.put(k,v) );
-        }
-
-        @Override
-        public String getName() {
-            return "USER." + this.get( "iss" ).toString();
-        }
-
-        public String getRole() {
-            if( this.containsKey("role") )
-                return roles.getRole( (int) (long) this.get( "role" ) );
-            else return "USER";
-        }
-    }
-
-    public static class JWTSecurityContext implements SecurityContext
-    {
-        private JWTPrincipal principal;
-        private boolean isSecure;
-        private String role;
-
-        public JWTSecurityContext( final JWTPrincipal principal, final boolean isSecure ) {
-            this.principal  = principal;
-            this.isSecure   = isSecure;
-            this.role = principal.getRole();
-        }
-
-        @Override
-        public String getAuthenticationScheme() {
-            return "JWT"; // informational
-        }
-
-        @Override
-        public Principal getUserPrincipal() {
-            return principal;
-        }
-
-        @Override
-        public boolean isSecure() {
-            return isSecure;
-        }
-
-        @Override
-        public boolean isUserInRole(final String role) {
-            return this.role.equals( role );
-        }
     }
 }
 

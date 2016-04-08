@@ -1,13 +1,17 @@
 package tixer.services.orders;
 
 import tixer.data.pojo.CartItem;
+import tixer.data.pojo.Order;
+import tixer.data.pojo.Shipment;
 import tixer.services.orders.vo.request.NewItemRequest;
-import tixer.services.orders.vo.response.CartResponse;
+import tixer.services.orders.vo.request.NewOrderRequest;
 
 import javax.annotation.security.RolesAllowed;
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Created by slawek@t01.pl on 2016-03-29.
@@ -17,51 +21,45 @@ import java.util.Collection;
 @Produces(MediaType.APPLICATION_JSON)
 public interface OrdersResource {
 
-    @GET
-    @Path("/new")
-    @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed( {"ANY"} )
-    public String new_order();
-
     @POST
     @Path("/add")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed( {"ANY"} )
+    @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
     public CartItem add_item( NewItemRequest item );
-
-    @POST
-    @Path("/group")
-    @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed( {"ANY"} )
-    public Object make_order( Collection<Integer> items );
 
     @GET
     @Path("/group")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed( {"ANY"} )
-    public Object make_order();
+    @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
+    public Order make_order();
+
+    @POST
+    @Path("/group")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
+    public Order make_order( NewOrderRequest addy );
 
     @POST
     @Path("/remove")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed( {"ANY"} )
+    @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
     public void remove( Collection<Integer> items );
 
     @GET
-    @Path("/remove")
+    @Path("/clear")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed( {"ANY"} )
-    public void remove();
+    @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
+    public void clear();
 
     @GET
     @Path("/cart")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed( {"ANY"} )
+    @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
     public Object cart();
 
-    @POST
-    @Path("/get_shipments")
+    @GET
+    @Path("/shipments")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed( {"ANY"} )
-    public Object get_shipments( Collection<Integer> items );
+    @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
+    public Collection<Shipment> get_shipments();
 }

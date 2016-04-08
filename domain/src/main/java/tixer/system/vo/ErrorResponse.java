@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import java.util.regex.Pattern;
+
 /**
  * Created by slawek@t01.pl on 2016-03-11.
  */
@@ -18,6 +20,14 @@ public class ErrorResponse {
 
     @JsonIgnore
     public final Exception exception;
+
+    @JsonIgnore
+    public ErrorResponse( String m ) {
+        data = null;
+        message = m;
+        exception = null;
+        this.stamp = ( (Long) System.currentTimeMillis() ).toString();
+    }
 
     @JsonIgnore
     public ErrorResponse( Exception e ) {

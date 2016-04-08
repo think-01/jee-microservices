@@ -26,4 +26,6 @@ public class Shipment {
 
     public Integer addy;
     public Integer phone;
+
+    public Integer weight;
 }

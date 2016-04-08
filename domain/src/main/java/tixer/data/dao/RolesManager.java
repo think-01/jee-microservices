@@ -15,7 +15,7 @@ import java.util.Map;
 @Singleton
 @Startup
 @ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
-@Lock(LockType.WRITE)
+@Lock(LockType.READ)
 public class RolesManager {
 
     @PersistenceContext
@@ -25,7 +25,7 @@ public class RolesManager {
 
     @PostConstruct
     @Schedule(second="*", minute="*/10",hour="*", persistent=false)
-    public void applicationStartup() {
+    private void applicationStartup() {
         roles.clear();
         em.createQuery("SELECT r FROM Role r", Role.class)
                 .getResultList()

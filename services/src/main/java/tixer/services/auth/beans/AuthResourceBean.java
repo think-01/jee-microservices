@@ -54,8 +54,9 @@ public class AuthResourceBean implements AuthResource {
                                         u.id.toString(),
                                         u.email,
                                         key.issue(u.id.toString()),
+                                        u.company,
                                         u.role,
-                                        u.company
+                                        roles.getRole( u.role )
                                 )
                         )
                         .get();

@@ -37,7 +37,8 @@ public class LoginResponse {
             String email,
             String token,
             Integer company,
-            Integer role) {
+            Integer role,
+            String role_txt) {
         this.header = new JWTHeader();
 
         this.claim = new JWTClaim();
@@ -47,6 +48,8 @@ public class LoginResponse {
         this.claim.role = role;
         this.claim.company = company;
         this.token = token;
+
+        this.role_txt = role_txt;
     }
 
     public LoginResponse(
@@ -63,6 +66,9 @@ public class LoginResponse {
         this.claim.email = email;
         this.claim.name = name;
         this.token = token;
+
+        this.role_txt = "USER";
     }
 
+    public String role_txt;
 }

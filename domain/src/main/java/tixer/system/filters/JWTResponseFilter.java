@@ -46,16 +46,25 @@ public class JWTResponseFilter implements ContainerResponseFilter {
 
         if( ( s < 200 || s >= 300 ) && s != 418 ) {
 
+            ErrorResponse ent;
+            Object _ent = responseCtx.getEntity();
+            if( _ent instanceof ErrorResponse )
+                ent = ( ErrorResponse ) _ent;
+            else {
+                ent = new ErrorResponse(_ent.toString());
+                responseCtx.setEntity( ent );
+            }
+
             String client = requestCtx.getHeaderString("X-Client");
             if( client == null ) {
-                ((ErrorResponse) responseCtx.getEntity()).fingerprint = "Warning: no X-Client header means no error logging!";
+                ent.fingerprint = "Warning: no X-Client header means no error logging!";
             } else {
                 client = client.toUpperCase();
                 if( client.equals( "SWAGGER" ) ) {
-                    ((ErrorResponse) responseCtx.getEntity()).fingerprint = "Warning: SWAGGER requests are not logged!";
+                    ent.fingerprint = "Warning: SWAGGER requests are not logged!";
                 } else {
                     String uuid = UUID.randomUUID().toString();
-                    ((ErrorResponse) responseCtx.getEntity()).fingerprint = uuid;
+                    ent.fingerprint = uuid;
 
                     String exceptionAsString;
 

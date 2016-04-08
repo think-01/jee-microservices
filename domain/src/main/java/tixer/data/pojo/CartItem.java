@@ -3,12 +3,11 @@ package tixer.data.pojo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import tixer.data.enums.ShipmentType;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
+//import javax.validation.constraints.Pattern;
 /**
  * Created by slawek@t01.pl on 2016-03-29.
  */
@@ -26,7 +25,7 @@ public class CartItem {
     public Integer item_id;
 
     @Column( nullable = false )
-    @JsonIgnore
+    //@Pattern(regexp = "[0-9]+", message = "The id must be a valid number")
     public String item_class;
 
     @Column( nullable = false )
@@ -41,11 +40,9 @@ public class CartItem {
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn( name="order_id" )
-    @JsonIgnore
     public Order order;
 
     @Column( nullable = false )
-    @JsonIgnore
     public Integer user_id;
 
     public Integer weight;
@@ -53,10 +50,6 @@ public class CartItem {
     @JsonIgnore
     public int deleted;
 
-    @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn( name="shipment_method_id" )
-    public ShipmentDetails shipment;
-
-    @Transient
-    public List<Shipment> shipments;
+    @Enumerated( EnumType.STRING )
+    public ShipmentType shipment_type;
 }
