@@ -1,7 +1,7 @@
 package tixer.services.auth.beans;
 
 import tixer.data.dao.UserManager;
-import tixer.services.auth.AuthResource;
+import tixer.services.AuthResource;
 import tixer.services.auth.vo.request.LoginRequest;
 import tixer.services.auth.vo.response.LoginResponse;
 

@@ -88,6 +88,7 @@ public class CartItemsManager {
                     .setParameter("id", id)
                     .setParameter("c", type)
                     .setParameter("me", user_id)
+                    .setMaxResults(1)
                     .getSingleResult();
 
             i.quantity = /*i.quantity + */quantity;

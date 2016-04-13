@@ -4,10 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import tixer.data.enums.OrderStatus;
-import tixer.data.enums.ShipmentType;
+import tixer.system.persistence.APIEntity;
 
 import javax.persistence.*;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -17,11 +16,13 @@ import java.util.List;
 @Table(name = "api_orders")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class Order {
+public class Order  extends APIEntity {
 
+    /*
     @Id
     @GeneratedValue
     public Integer id;
+    */
 
     public String name;
     public String address;
@@ -48,9 +49,11 @@ public class Order {
     @JsonIgnore
     public int deleted;
 
+    /*
     @Column( nullable = false )
     @JsonIgnore
     public Date created_at;
+    */
 
     @Column( nullable = false )
     @JsonIgnore

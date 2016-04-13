@@ -42,7 +42,7 @@ public class RolesManager {
                 roles.put(roleID, r.getLabel());
             } catch( Exception ignored) { }
         }
-        return roles.containsKey( roleID ) ? roles.get( roleID ) : "GUEST";
+        return roles.containsKey( roleID ) ? roles.get( roleID ) : "USER";
     }
 
     public Map<Integer, String> getRoles() {

@@ -38,4 +38,8 @@ public class NewItemRequest {
     public String getShipment() {
         return shipment;
     }
+
+    public void setItem_class(String item_class) {
+        this.item_class = item_class.toUpperCase();
+    }
 }

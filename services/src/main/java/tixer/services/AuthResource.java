@@ -1,4 +1,4 @@
-package tixer.services.auth;
+package tixer.services;
 
 import tixer.services.auth.vo.request.LoginRequest;
 import tixer.services.auth.vo.response.LoginResponse;

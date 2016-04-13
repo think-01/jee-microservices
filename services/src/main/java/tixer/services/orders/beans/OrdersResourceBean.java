@@ -1,31 +1,35 @@
 package tixer.services.orders.beans;
 
-import tixer.data.dao.CartItemsManager;
-import tixer.data.dao.RolesManager;
-import tixer.data.dao.ShipmentsManager;
-import tixer.data.dao.TicketsManager;
+import tixer.data.ddao.base.DefinedDaoBean;
+import tixer.data.ddao.beans.CartItemDaoBean;
+import tixer.data.ddao.beans.ShipmentDaoBean;
+import tixer.data.ddao.generic.APIGenericDaoBean;
 import tixer.data.enums.OrderStatus;
 import tixer.data.enums.ShipmentType;
 import tixer.data.pojo.CartItem;
+import tixer.data.goodies.base.Goods;
+import tixer.data.goodies.base.GoodsAnnotationImpl;
 import tixer.data.pojo.Order;
 import tixer.data.pojo.Shipment;
-import tixer.services.orders.OrdersResource;
+import tixer.services.OrdersResource;
 import tixer.services.orders.vo.request.NewItemRequest;
 import tixer.services.orders.vo.request.NewOrderRequest;
 import tixer.system.security.JWTPrincipal;
-import tixer.system.security.JWTSecurityContext;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.validation.Valid;
-import javax.ws.rs.WebApplicationException;
+import javax.enterprise.inject.Any;
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * Created by slawek@t01.pl on 2016-03-29.
+ * Created by slawek@t01.pl on 2016-04-11.
  */
 @Stateless
 public class OrdersResourceBean implements OrdersResource {
@@ -34,13 +38,16 @@ public class OrdersResourceBean implements OrdersResource {
     private SecurityContext securityContext;
 
     @EJB
-    TicketsManager tickets;
+    CartItemDaoBean cartItemsDao;
 
     @EJB
-    CartItemsManager cartItems;
+    ShipmentDaoBean shipmentDaoBean;
 
     @EJB
-    ShipmentsManager shipmentMethods;
+    APIGenericDaoBean<Order> orderDaoBean;
+
+    @Inject @Any
+    Instance<Goods> goods;
 
     private Integer me;
     private Integer sub;
@@ -64,18 +71,43 @@ public class OrdersResourceBean implements OrdersResource {
             throw new WebApplicationException( "Unknown shipment type specified: '"+item.getShipment()+"' known types are: "+ Arrays.stream(ShipmentType.values()).map(i -> i.name()).reduce("", (x, y) -> x + "," + y), 400 );
 
         authenticate();
-        switch( item.item_class.toUpperCase() )
-        {
-            case TicketsManager.type:
-                return tickets.book(
-                        item.item_id,
-                        item.quantity,
-                        item.shipment_type,
-                        sub
-                );
-            default:
-                throw new WebApplicationException( "Item class '"+item.item_class+"' was not implemented", 400 );
-        }
+
+        Goods goodie = goods
+                .select(new GoodsAnnotationImpl( item.item_class ))
+                .get()
+                .setUser( sub )
+                .setShipmentType(item.shipment_type)
+                .setId( item.item_id )
+                .setQuantity(item.quantity);
+
+        return cartItemsDao.save( goodie.toCartItem() );
+    }
+
+    public List<CartItem> cart( )
+    {
+        authenticate();
+        return cartItemsDao.getReservationsForUser(sub);
+    }
+
+    public Collection<Shipment> get_shipments()
+    {
+        authenticate();
+        List<CartItem> items = cartItemsDao.getReservationsForUser(sub);
+
+        Integer weight = items.stream().filter(i -> i.shipment_type == ShipmentType.DELIVERY).map(i -> i.weight * i.quantity).reduce(0, (x, y) -> x + y);
+        return shipmentDaoBean.getPossibleMethods(sub, weight);
+    }
+
+    public void clear()
+    {
+        authenticate();;
+        cartItemsDao.releaseAllReservationsForUser(sub);
+    }
+
+    public void remove( Collection<Integer> items )
+    {
+        authenticate();
+        cartItemsDao.releaseSomeReservationsForUser(sub, items);
     }
 
     public Order make_order()
@@ -86,13 +118,12 @@ public class OrdersResourceBean implements OrdersResource {
     public Order make_order( NewOrderRequest addy )
     {
         authenticate();
-        List<CartItem> items = cartItems.getReserved(sub);
+        List<CartItem> items = cartItemsDao.getReservationsForUser(sub);
 
         Order order = new Order();
         order.status = OrderStatus.NEW;
-        order.created_at = new Date();
 
-        order.user_id = ( (JWTPrincipal) securityContext.getUserPrincipal() ).sub;
+        order.user_id = sub;
         order.admin_id = securityContext.isUserInRole("USER") ? null : ( (JWTPrincipal) securityContext.getUserPrincipal() ).me;
 
         if( items.stream().filter(i -> i.shipment_type == ShipmentType.DELIVERY).count() > 0 )
@@ -101,7 +132,8 @@ public class OrdersResourceBean implements OrdersResource {
             {
                 Integer weight = items.stream().filter(i -> i.shipment_type == ShipmentType.DELIVERY).map(i -> i.weight).reduce(0, (x, y) -> x + y);
 
-                Shipment method = shipmentMethods.getMethod(addy.method);
+                Shipment method = shipmentDaoBean.find(addy.method);
+
                 if( weight > method.weight )
                     throw new WebApplicationException( "Your package is to heavy for '"+method.name+"'", 400 );
 
@@ -127,36 +159,10 @@ public class OrdersResourceBean implements OrdersResource {
             }
         }
 
-        cartItems.setOrder(sub, order);
+        orderDaoBean.persist( order );
+        cartItemsDao.setOrderForAllUserReservations( sub, order );
+
         return order;
-    }
-
-    public void clear()
-    {
-        authenticate();;
-        cartItems.remove(sub);
-    }
-
-    public void remove( Collection<Integer> items )
-    {
-        authenticate();
-        cartItems.remove(sub, items);
-    }
-
-    public Object cart( )
-    {
-        authenticate();
-        List<CartItem> ci = cartItems.getReserved(sub);
-        return ci;
-    }
-
-    public Collection<Shipment> get_shipments()
-    {
-        authenticate();
-        List<CartItem> items = cartItems.getReserved(sub);
-
-        Integer weight = items.stream().filter(i -> i.shipment_type == ShipmentType.DELIVERY).map(i -> i.weight).reduce(0, (x, y) -> x + y);
-        return shipmentMethods.getMethods( sub, weight );
     }
 
 }

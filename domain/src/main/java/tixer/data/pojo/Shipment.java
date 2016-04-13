@@ -9,7 +9,7 @@ import javax.persistence.*;
  * Created by slawek@t01.pl on 2016-04-01.
  */
 @Entity
-@Table(name = "shipment")
+@Table(name = "shipments")
 public class Shipment {
 
     @Id

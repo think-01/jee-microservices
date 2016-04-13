@@ -1,4 +1,4 @@
-package tixer.services.orders;
+package tixer.services;
 
 import tixer.data.pojo.CartItem;
 import tixer.data.pojo.Order;
@@ -7,14 +7,13 @@ import tixer.services.orders.vo.request.NewItemRequest;
 import tixer.services.orders.vo.request.NewOrderRequest;
 
 import javax.annotation.security.RolesAllowed;
-import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.Collection;
-import java.util.Map;
+import java.util.List;
 
 /**
- * Created by slawek@t01.pl on 2016-03-29.
+ * Created by slawek@t01.pl on 2016-04-12.
  */
 @Path("/Order")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -28,16 +27,22 @@ public interface OrdersResource {
     public CartItem add_item( NewItemRequest item );
 
     @GET
-    @Path("/group")
+    @Path("/cart")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
-    public Order make_order();
+    public List<CartItem> cart();
 
-    @POST
-    @Path("/group")
+    @GET
+    @Path("/shipments")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
-    public Order make_order( NewOrderRequest addy );
+    public Collection<Shipment> get_shipments();
+
+    @GET
+    @Path("/clear")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
+    public void clear();
 
     @POST
     @Path("/remove")
@@ -46,20 +51,15 @@ public interface OrdersResource {
     public void remove( Collection<Integer> items );
 
     @GET
-    @Path("/clear")
+    @Path("/make")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
-    public void clear();
+    public Order make_order();
 
-    @GET
-    @Path("/cart")
+    @POST
+    @Path("/make")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
-    public Object cart();
-
-    @GET
-    @Path("/shipments")
-    @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
-    public Collection<Shipment> get_shipments();
+    public Order make_order( NewOrderRequest addy );
 }
+
