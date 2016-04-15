@@ -1,20 +1,24 @@
 package tixer.services.orders.beans;
 
-import tixer.data.ddao.base.DefinedDaoBean;
+import tixer.business.depots.annotation.DepotsAnnotationImpl;
+import tixer.business.depots.base.DepotInterface;
+import tixer.business.shipments.annotation.PacksAnnotation;
+import tixer.business.shipments.annotation.PacksAnnotationImpl;
+import tixer.business.shipments.base.PackInterface;
 import tixer.data.ddao.beans.CartItemDaoBean;
 import tixer.data.ddao.beans.ShipmentDaoBean;
 import tixer.data.ddao.generic.APIGenericDaoBean;
 import tixer.data.enums.OrderStatus;
 import tixer.data.enums.ShipmentType;
 import tixer.data.pojo.CartItem;
-import tixer.data.goodies.base.Goods;
-import tixer.data.goodies.base.GoodsAnnotationImpl;
+import tixer.business.goods.base.GoodInterface;
+import tixer.business.goods.annotation.GoodsAnnotationImpl;
 import tixer.data.pojo.Order;
 import tixer.data.pojo.Shipment;
 import tixer.services.OrdersResource;
 import tixer.services.orders.vo.request.NewItemRequest;
 import tixer.services.orders.vo.request.NewOrderRequest;
-import tixer.system.security.JWTPrincipal;
+import tixer.system.services.JWTService;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -22,20 +26,15 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.SecurityContext;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by slawek@t01.pl on 2016-04-11.
  */
 @Stateless
-public class OrdersResourceBean implements OrdersResource {
-
-    @Context
-    private SecurityContext securityContext;
+public class OrdersResourceBean extends JWTService implements OrdersResource {
 
     @EJB
     CartItemDaoBean cartItemsDao;
@@ -47,66 +46,61 @@ public class OrdersResourceBean implements OrdersResource {
     APIGenericDaoBean<Order> orderDaoBean;
 
     @Inject @Any
-    Instance<Goods> goods;
+    Instance<GoodInterface> goods;
 
-    private Integer me;
-    private Integer sub;
+    @Inject @Any
+    Instance<DepotInterface> depots;
 
-    private void authenticate()
-    {
-        me = ( (JWTPrincipal) securityContext.getUserPrincipal() ).me;
-        sub = ( (JWTPrincipal) securityContext.getUserPrincipal() ).sub;
+    @Inject @Any
+    Instance<PackInterface> packs;
 
-        if( securityContext.isUserInRole("USER") ) sub = me;
-        else
-        {
-            if( sub == 0 )
-                throw new WebApplicationException( "Admins can't place orders for themselves. 'sub' is missing in JWT header claim", 400 );
-        }
-    }
+    @Inject
+    @PacksAnnotation(ShipmentType.DELIVERY)
+    PackInterface deliveredPack;
 
     public CartItem add_item( NewItemRequest item )
     {
-        if( item.shipment_type == null )
-            throw new WebApplicationException( "Unknown shipment type specified: '"+item.getShipment()+"' known types are: "+ Arrays.stream(ShipmentType.values()).map(i -> i.name()).reduce("", (x, y) -> x + "," + y), 400 );
-
-        authenticate();
-
-        Goods goodie = goods
-                .select(new GoodsAnnotationImpl( item.item_class ))
+        GoodInterface good = goods
+                .select(new GoodsAnnotationImpl(item.item_class))
                 .get()
-                .setUser( sub )
-                .setShipmentType(item.shipment_type)
-                .setId( item.item_id )
-                .setQuantity(item.quantity);
+                .setId(item.item_id);
 
-        return cartItemsDao.save( goodie.toCartItem() );
+        PackInterface pack = packs
+                .select(new PacksAnnotationImpl( item.shipment_type ))
+                    .get();
+
+        pack.add( sub, good, item.quantity );
+
+        DepotInterface depot = depots
+                .select (new DepotsAnnotationImpl( good.getDepot() ) )
+                .get();
+
+        return depot.reserve( sub, good, item.quantity );
     }
 
     public List<CartItem> cart( )
     {
-        authenticate();
         return cartItemsDao.getReservationsForUser(sub);
     }
 
     public Collection<Shipment> get_shipments()
     {
-        authenticate();
-        List<CartItem> items = cartItemsDao.getReservationsForUser(sub);
+        Integer cartWeight = deliveredPack.getWeight(sub);
 
-        Integer weight = items.stream().filter(i -> i.shipment_type == ShipmentType.DELIVERY).map(i -> i.weight * i.quantity).reduce(0, (x, y) -> x + y);
-        return shipmentDaoBean.getPossibleMethods(sub, weight);
+        return shipmentDaoBean
+                .all()
+                .stream()
+                .filter(i -> i.weight >= cartWeight )
+                .collect(Collectors.toList());
     }
 
     public void clear()
     {
-        authenticate();;
         cartItemsDao.releaseAllReservationsForUser(sub);
     }
 
     public void remove( Collection<Integer> items )
     {
-        authenticate();
         cartItemsDao.releaseSomeReservationsForUser(sub, items);
     }
 
@@ -117,21 +111,17 @@ public class OrdersResourceBean implements OrdersResource {
 
     public Order make_order( NewOrderRequest addy )
     {
-        authenticate();
-        List<CartItem> items = cartItemsDao.getReservationsForUser(sub);
-
         Order order = new Order();
         order.status = OrderStatus.NEW;
 
         order.user_id = sub;
-        order.admin_id = securityContext.isUserInRole("USER") ? null : ( (JWTPrincipal) securityContext.getUserPrincipal() ).me;
+        order.admin_id = admin;
 
-        if( items.stream().filter(i -> i.shipment_type == ShipmentType.DELIVERY).count() > 0 )
+        if( deliveredPack.isNotEmpty(sub) )
         {
             try
             {
-                Integer weight = items.stream().filter(i -> i.shipment_type == ShipmentType.DELIVERY).map(i -> i.weight).reduce(0, (x, y) -> x + y);
-
+                Integer weight = deliveredPack.getWeight(sub);
                 Shipment method = shipmentDaoBean.find(addy.method);
 
                 if( weight > method.weight )

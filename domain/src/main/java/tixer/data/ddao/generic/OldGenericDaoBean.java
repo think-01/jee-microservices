@@ -4,6 +4,7 @@ import tixer.data.ddao.base.AbstractDaoBean;
 
 import javax.ejb.Stateless;
 import javax.inject.Named;
+import java.util.List;
 
 /**
  * Created by slawek@t01.pl on 2016-04-11.
@@ -22,6 +23,11 @@ public class OldGenericDaoBean<E> extends AbstractDaoBean{
 
     public void remove(final E instance) {
         em.remove(instance);
+    }
+
+    public List<E> all() {
+        return em.createQuery("SELECT s FROM " + getEntityClassName() + " s", getEntityClass())
+                .getResultList();
     }
 
     public E merge(final E instance) {

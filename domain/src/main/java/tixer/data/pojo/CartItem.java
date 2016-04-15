@@ -54,6 +54,5 @@ public class CartItem extends APIEntity {
     @JsonIgnore
     public int deleted;
 
-    @Enumerated( EnumType.STRING )
-    public ShipmentType shipment_type;
+    public String shipment_type;
 }

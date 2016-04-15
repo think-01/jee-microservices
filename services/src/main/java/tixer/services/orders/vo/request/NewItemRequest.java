@@ -20,23 +20,10 @@ public class NewItemRequest {
 
     public Integer quantity;
 
-    public ShipmentType shipment_type;
-
-    private String shipment;
+    public String shipment_type;
 
     public void setShipment(String shipment) {
-        this.shipment = shipment;
-        try {
-            this.shipment_type = ShipmentType.valueOf(shipment);
-        }
-        catch( Exception e )
-        {
-            this.shipment_type = null;
-        }
-    }
-
-    public String getShipment() {
-        return shipment;
+        this.shipment_type = ShipmentType.valueOf(shipment);
     }
 
     public void setItem_class(String item_class) {

@@ -5,6 +5,7 @@ import tixer.data.pojo.Order;
 import tixer.data.pojo.Shipment;
 import tixer.services.orders.vo.request.NewItemRequest;
 import tixer.services.orders.vo.request.NewOrderRequest;
+import tixer.system.annotations.Claims;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
@@ -24,42 +25,49 @@ public interface OrdersResource {
     @Path("/add")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
-    public CartItem add_item( NewItemRequest item );
+    @Claims( {"sub"} )
+    CartItem add_item(NewItemRequest item);
 
     @GET
     @Path("/cart")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
-    public List<CartItem> cart();
+    @Claims( {"sub"} )
+    List<CartItem> cart();
 
     @GET
     @Path("/shipments")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
-    public Collection<Shipment> get_shipments();
+    @Claims( {"sub"} )
+    Collection<Shipment> get_shipments();
 
     @GET
     @Path("/clear")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
-    public void clear();
+    @Claims( {"sub"} )
+    void clear();
 
     @POST
     @Path("/remove")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
-    public void remove( Collection<Integer> items );
+    @Claims( {"sub"} )
+    void remove(Collection<Integer> items);
 
     @GET
-    @Path("/make")
+    @Path("/group")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
-    public Order make_order();
+    @Claims( {"sub"} )
+    Order make_order();
 
     @POST
-    @Path("/make")
+    @Path("/group")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed( {"USER","BOW","SUPER_ADMIN"} )
-    public Order make_order( NewOrderRequest addy );
+    @Claims( {"sub"} )
+    Order make_order(NewOrderRequest addy);
 }
 

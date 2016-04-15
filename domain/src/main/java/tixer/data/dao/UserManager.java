@@ -10,11 +10,15 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Selection;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -41,7 +45,6 @@ public class UserManager {
 
     public Optional<User> check( String fb_token )
     {
-
         Client client = ClientBuilder.newClient();
         WebTarget userTarget = client.target("https://graph.facebook.com/me");
         Response res = userTarget

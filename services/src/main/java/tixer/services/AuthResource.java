@@ -18,19 +18,19 @@ public interface AuthResource {
     @GET
     @Path("/ping")
     @Produces(MediaType.APPLICATION_JSON)
-    public String check();
+    String check();
 
     @GET
     @RolesAllowed( {"SUPER_ADMIN"} )
     @Path("/roles")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Object getRoles( );
+    Object getRoles();
 
     @POST
     @Path("/login")
     @Produces(MediaType.APPLICATION_JSON)
-    public LoginResponse login (
+    LoginResponse login(
             LoginRequest login
     );
 }

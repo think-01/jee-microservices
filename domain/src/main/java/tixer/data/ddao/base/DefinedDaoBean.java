@@ -1,9 +1,11 @@
 package tixer.data.ddao.base;
 
+import tixer.data.pojo.Shipment;
 import tixer.system.persistence.APIEntity;
 
 import javax.ejb.Stateless;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by slawek@t01.pl on 2016-04-11.
@@ -18,6 +20,11 @@ public class DefinedDaoBean<E extends APIEntity> extends AbstractDaoBean {
 
     public E find(final long id) {
         return (E) em.find( getEntityClass(), id);
+    }
+
+    public List<E> all() {
+        return em.createQuery("SELECT s FROM " + getEntityClassName() + " s WHERE deleted_at IS NULL", getEntityClass())
+                .getResultList();
     }
 
     public void remove(final E instance) {

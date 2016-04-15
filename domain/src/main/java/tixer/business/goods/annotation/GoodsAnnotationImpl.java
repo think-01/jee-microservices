@@ -1,4 +1,4 @@
-package tixer.data.goodies.base;
+package tixer.business.goods.annotation;
 
 import javax.enterprise.util.AnnotationLiteral;
 

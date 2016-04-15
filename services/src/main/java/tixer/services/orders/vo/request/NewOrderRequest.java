@@ -19,6 +19,6 @@ public class NewOrderRequest {
     public String postal_code;
     public String city;
     public String country;
-    public String phone;        ;
+    public String phone;
 
 }

@@ -1,11 +1,12 @@
-package tixer.data.goodies;
+package tixer.business.goods;
 
+import tixer.business.depots.TicketsDepot;
 import tixer.data.ddao.generic.OldGenericDaoBean;
 import tixer.data.ddao.beans.CartItemDaoBean;
 import tixer.data.enums.ShipmentType;
-import tixer.data.goodies.base.Goodie;
-import tixer.data.goodies.base.Goods;
-import tixer.data.goodies.base.GoodsAnnotation;
+import tixer.business.goods.base.GoodAbstract;
+import tixer.business.goods.base.GoodInterface;
+import tixer.business.goods.annotation.GoodsAnnotation;
 import tixer.data.pojo.Ticket;
 import tixer.system.helpers.Produced;
 
@@ -19,7 +20,7 @@ import javax.ws.rs.WebApplicationException;
  */
 @Stateful
 @GoodsAnnotation( TicketItem.name )
-public class TicketItem extends Goodie implements Goods {
+public class TicketItem extends GoodAbstract implements GoodInterface {
 
     public static final String name = "TICKET";
 
@@ -31,14 +32,11 @@ public class TicketItem extends Goodie implements Goods {
     CartItemDaoBean cartItemsDao;
 
     private Ticket ticket;
-    private ShipmentType shipment;
-    private Integer user;
-    private Integer id;
-    private Integer quantity;
+    private String shipment;
 
-    public TicketItem setShipmentType( ShipmentType shipment_type )
+    public TicketItem setShipmentType( String shipment_type )
     {
-        if( shipment_type == ShipmentType.ON_EVENT )
+        if( shipment_type.equals(ShipmentType.ON_EVENT) )
             throw new WebApplicationException( "Bad shipment type specified. You can't receive a ticket on event this ticket is issued for :)", 400 );
 
         shipment = shipment_type;
@@ -51,27 +49,6 @@ public class TicketItem extends Goodie implements Goods {
         if (ticket.schedule.selling_seats == 1)
             throw new WebApplicationException("Seatsio tickets not implemented", 400);
 
-        this.id = id;
-        return this;
-    }
-
-    public TicketItem setQuantity( Integer quantity )
-    {
-        if( quantity > 0 )
-        {
-            Long reserved = cartItemsDao.getSoldAndReserved( user, TicketItem.name, ticket.id );
-
-            if( reserved + quantity >= ticket.count )
-                throw new WebApplicationException( "Unable to book " +quantity+" tickets. Only "+( ticket.count-reserved )+" left.", 400 );
-
-        }
-
-        this.quantity = quantity;
-        return this;
-    }
-
-    public TicketItem setUser(Integer uid){
-        user = uid;
         return this;
     }
 
@@ -87,12 +64,8 @@ public class TicketItem extends Goodie implements Goods {
         return 0;
     }
 
-    public Integer getQuantity(){
-        return quantity;
-    }
-
-    public Integer getUser(){
-        return user;
+    public Integer getPool(){
+        return ticket.count;
     }
 
     public String getType(){
@@ -100,10 +73,18 @@ public class TicketItem extends Goodie implements Goods {
     }
 
     public Integer getId(){
-        return id;
+        return ticket.id;
     }
 
-    public ShipmentType getShipmentType(){
+    public String getShipmentType(){
         return shipment;
+    }
+
+    public String getDepot() {
+        /** ToDo hook seatsio depot */
+        if( ticket.schedule.selling_seats == 1 )
+            throw new WebApplicationException("Seatsio tickets depot is not implemented yet", 400);
+        else
+            return TicketsDepot.name;
     }
 }

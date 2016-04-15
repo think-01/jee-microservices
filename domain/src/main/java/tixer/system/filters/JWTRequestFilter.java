@@ -1,5 +1,6 @@
 package tixer.system.filters;
 
+import tixer.system.annotations.Claims;
 import tixer.system.beans.KeyFactory;
 import tixer.data.dao.RolesManager;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -100,6 +101,17 @@ public class JWTRequestFilter implements ContainerRequestFilter {
                                     principal.role = roles.getRole( claims.getIntegerClaim("role") );
                                 } catch ( Exception e ) {
                                     principal.role = "USER";
+                                }
+
+                                Claims claimsAnnotation = method.getAnnotation(Claims.class);
+                                if( claimsAnnotation != null ) {
+                                    Iterator<String> claimsIterator = Arrays.asList(claimsAnnotation.value()).iterator();
+                                    while (claimsIterator.hasNext()) {
+                                        String claimItem = claimsIterator.next();
+                                        if( claimItem.equals("sub") && principal.role.equals("USER") ) continue;
+                                        if (claims.getClaim(claimItem) == null)
+                                            throw new NotAuthorizedException("Missing '" + claimItem + "' in JWT claim.", 400);
+                                    }
                                 }
 
                                 try { principal.email = claims.getStringClaim( "email" ); } catch ( Exception e ) {}

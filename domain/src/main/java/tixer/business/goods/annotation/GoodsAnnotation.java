@@ -1,4 +1,4 @@
-package tixer.data.goodies.base;
+package tixer.business.goods.annotation;
 
 import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
@@ -15,6 +15,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER})
 public @interface GoodsAnnotation {
 
-    @Nonbinding public String value();
+    String value();
 
 }

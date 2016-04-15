@@ -19,7 +19,7 @@ public class CartItemDaoBean extends DefinedDaoBean<CartItem> {
 
     public void cleanup()
     {
-        em.createQuery("UPDATE CartItem i SET i.deleted_at IS NULL WHERE i.created_at < :date AND i.order IS NULL")
+        em.createQuery("UPDATE CartItem i SET i.deleted_at = :date WHERE i.created_at < :date AND i.order IS NULL")
                 .setParameter("date", new Date(System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(10)))
                 .executeUpdate();
     }
