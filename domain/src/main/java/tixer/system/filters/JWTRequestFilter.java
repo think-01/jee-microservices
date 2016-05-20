@@ -1,5 +1,6 @@
 package tixer.system.filters;
 
+import com.nimbusds.jose.JWSAlgorithm;
 import tixer.system.annotations.Claims;
 import tixer.system.beans.KeyFactory;
 import tixer.data.dao.RolesManager;
@@ -8,12 +9,14 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
 import com.nimbusds.jwt.SignedJWT;
+import tixer.system.helpers.UserContext;
 import tixer.system.security.JWTPrincipal;
 import tixer.system.security.JWTSecurityContext;
 
 import javax.annotation.Priority;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.EJB;
+import javax.inject.Inject;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -36,6 +39,9 @@ import java.util.regex.Pattern;
 @Priority(Priorities.AUTHORIZATION)
 public class JWTRequestFilter implements ContainerRequestFilter {
 
+    @Inject
+    UserContext userContext;
+
     @Context
     private ResourceInfo resourceInfo;
 
@@ -49,7 +55,6 @@ public class JWTRequestFilter implements ContainerRequestFilter {
 
     @Override
     public void filter( ContainerRequestContext requestContext ) throws IOException {
-
         String authorizationHeader = requestContext.getHeaderString( HttpHeaders.AUTHORIZATION );
 
         Method method = resourceInfo.getResourceMethod();
@@ -68,6 +73,9 @@ public class JWTRequestFilter implements ContainerRequestFilter {
                         JWT jwt = JWTParser.parse(token);
                         if (jwt instanceof SignedJWT) {
                             SignedJWT signedJWT = (SignedJWT) jwt;
+
+                            if( signedJWT.getHeader().getAlgorithm() != JWSAlgorithm.HS256 )
+                                throw new NotAuthorizedException( "Unable to verify Bearer token. Unsupported JWS algorithm, must be HS256.", 401 );
 
                             JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
 
@@ -131,6 +139,8 @@ public class JWTRequestFilter implements ContainerRequestFilter {
                                             requestContext.getSecurityContext().isSecure());
 
                                     requestContext.setSecurityContext(ctx);
+
+                                    userContext.fetch( ctx );
                                 }
                                 else
                                     throw new NotAuthorizedException( "Not in role", 403 );

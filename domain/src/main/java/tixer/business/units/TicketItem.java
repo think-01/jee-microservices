@@ -1,12 +1,12 @@
-package tixer.business.goods;
+package tixer.business.units;
 
 import tixer.business.depots.TicketsDepot;
 import tixer.data.ddao.generic.OldGenericDaoBean;
 import tixer.data.ddao.beans.CartItemDaoBean;
 import tixer.data.enums.ShipmentType;
-import tixer.business.goods.base.GoodAbstract;
-import tixer.business.goods.base.GoodInterface;
-import tixer.business.goods.annotation.GoodsAnnotation;
+import tixer.business.units.base.UnitAbstract;
+import tixer.business.units.base.UnitInterface;
+import tixer.business.units.annotation.UnitsAnnotation;
 import tixer.data.pojo.Ticket;
 import tixer.system.helpers.Produced;
 
@@ -19,8 +19,8 @@ import javax.ws.rs.WebApplicationException;
  * Created by slawek@t01.pl on 2016-04-11.
  */
 @Stateful
-@GoodsAnnotation( TicketItem.name )
-public class TicketItem extends GoodAbstract implements GoodInterface {
+@UnitsAnnotation( TicketItem.name )
+public class TicketItem extends UnitAbstract implements UnitInterface {
 
     public static final String name = "TICKET";
 

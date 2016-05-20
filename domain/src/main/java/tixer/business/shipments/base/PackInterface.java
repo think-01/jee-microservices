@@ -1,21 +1,21 @@
 package tixer.business.shipments.base;
 
-import tixer.business.goods.base.GoodInterface;
+import tixer.business.units.base.UnitInterface;
 
 /**
  * Created by slawek@t01.pl on 2016-04-13.
  */
 public interface PackInterface {
 
-    void add(Integer user_id, GoodInterface good, Integer quantity);
+    void add(UnitInterface good, Integer quantity);
 
-    boolean checkIfApplicable(GoodInterface good);
+    boolean checkIfApplicable(UnitInterface good);
 
-    boolean checkWeight(Integer user_id, GoodInterface good);
+    boolean checkWeight(UnitInterface good);
 
-    Integer getWeight(Integer user_id);
+    Integer getWeight();
 
-    Integer getMaxWeight(Integer user_id);
+    Integer getMaxWeight();
 
-    boolean isNotEmpty(Integer user_id);
+    boolean isNotEmpty();
 }

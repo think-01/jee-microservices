@@ -1,7 +1,7 @@
 package tixer.business.shipments;
 
-import tixer.business.goods.TicketItem;
-import tixer.business.goods.base.GoodInterface;
+import tixer.business.units.TicketItem;
+import tixer.business.units.base.UnitInterface;
 import tixer.business.shipments.annotation.PacksAnnotation;
 import tixer.business.shipments.base.PackAbstract;
 import tixer.business.shipments.base.PackInterface;
@@ -16,12 +16,12 @@ import javax.ejb.Stateless;
 @PacksAnnotation( ShipmentType.ON_EVENT )
 public class PickupPack extends PackAbstract implements PackInterface {
 
-    public boolean checkIfApplicable( GoodInterface good )
+    public boolean checkIfApplicable( UnitInterface good )
     {
         return !good.getType().equals(TicketItem.name);
     }
 
-    public Integer getMaxWeight( Integer user_id )
+    public Integer getMaxWeight( )
     {
         /** ToDo set max weight */
         return 50000;

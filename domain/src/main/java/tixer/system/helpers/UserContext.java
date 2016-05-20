@@ -1,27 +1,23 @@
-package tixer.system.services;
+package tixer.system.helpers;
 
 import tixer.system.security.JWTPrincipal;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.Stateless;
-import javax.ws.rs.WebApplicationException;
+import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
 
 /**
- * Created by slawek@t01.pl on 2016-04-14.
+ * Created by slawek@t01.pl on 2016-04-16.
  */
-public abstract class JWTService {
+@RequestScoped
+public class UserContext {
 
     protected Integer admin;
     protected Integer sub;
     protected Integer me;
 
-    @Context
-    private SecurityContext securityContext;
-
-    @PostConstruct
-    protected void fetch() {
+    public void fetch( SecurityContext securityContext ) {
         me = ( (JWTPrincipal) securityContext.getUserPrincipal() ).me;
 
         if( securityContext.isUserInRole("USER") ) {
@@ -32,5 +28,17 @@ public abstract class JWTService {
             sub = ((JWTPrincipal) securityContext.getUserPrincipal()).sub;
             admin = ( (JWTPrincipal) securityContext.getUserPrincipal() ).me;
         }
+    }
+
+    public Integer getAdmin() {
+        return admin;
+    }
+
+    public Integer getSub() {
+        return sub;
+    }
+
+    public Integer getMe() {
+        return me;
     }
 }

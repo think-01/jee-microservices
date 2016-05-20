@@ -1,6 +1,6 @@
 package tixer.business.depots.base;
 
-import tixer.business.goods.base.GoodInterface;
+import tixer.business.units.base.UnitInterface;
 import tixer.data.pojo.CartItem;
 
 /**
@@ -10,6 +10,7 @@ public interface DepotInterface {
 
     void cleanUp();
 
-    CartItem reserve(Integer user_id, GoodInterface good, Integer quantity);
+    void checkStock(Integer user_id, UnitInterface good, Integer quantity);
 
+    UnitInterface take( Integer item_id, Integer quantity );
 }

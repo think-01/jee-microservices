@@ -2,6 +2,8 @@ package tixer.data.ddao.base;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 

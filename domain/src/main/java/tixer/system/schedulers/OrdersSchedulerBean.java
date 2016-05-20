@@ -20,6 +20,7 @@ public class OrdersSchedulerBean {
 
     @Schedule(second="*", minute="*/4",hour="*", persistent=false)
     public void depotsCleanUp(){
+
         depots.forEach( x -> x.cleanUp() );
     }
 

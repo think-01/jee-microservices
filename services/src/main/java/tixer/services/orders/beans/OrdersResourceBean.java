@@ -1,5 +1,6 @@
 package tixer.services.orders.beans;
 
+import tixer.business.Bucket;
 import tixer.business.depots.annotation.DepotsAnnotationImpl;
 import tixer.business.depots.base.DepotInterface;
 import tixer.business.shipments.annotation.PacksAnnotation;
@@ -11,14 +12,13 @@ import tixer.data.ddao.generic.APIGenericDaoBean;
 import tixer.data.enums.OrderStatus;
 import tixer.data.enums.ShipmentType;
 import tixer.data.pojo.CartItem;
-import tixer.business.goods.base.GoodInterface;
-import tixer.business.goods.annotation.GoodsAnnotationImpl;
+import tixer.business.units.base.UnitInterface;
 import tixer.data.pojo.Order;
 import tixer.data.pojo.Shipment;
 import tixer.services.OrdersResource;
 import tixer.services.orders.vo.request.NewItemRequest;
 import tixer.services.orders.vo.request.NewOrderRequest;
-import tixer.system.services.JWTService;
+import tixer.system.helpers.UserContext;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -34,7 +34,10 @@ import java.util.stream.Collectors;
  * Created by slawek@t01.pl on 2016-04-11.
  */
 @Stateless
-public class OrdersResourceBean extends JWTService implements OrdersResource {
+public class OrdersResourceBean implements OrdersResource {
+
+    @Inject
+    UserContext userContext;
 
     @EJB
     CartItemDaoBean cartItemsDao;
@@ -45,47 +48,47 @@ public class OrdersResourceBean extends JWTService implements OrdersResource {
     @EJB
     APIGenericDaoBean<Order> orderDaoBean;
 
-    @Inject @Any
-    Instance<GoodInterface> goods;
-
-    @Inject @Any
-    Instance<DepotInterface> depots;
-
-    @Inject @Any
-    Instance<PackInterface> packs;
-
     @Inject
     @PacksAnnotation(ShipmentType.DELIVERY)
     PackInterface deliveredPack;
 
+    @Inject
+    @Any
+    Instance<DepotInterface> depots;
+
+    @Inject
+    @Any
+    Instance<PackInterface> packs;
+
+    @EJB
+    Bucket bucket;
+
     public CartItem add_item( NewItemRequest item )
     {
-        GoodInterface good = goods
-                .select(new GoodsAnnotationImpl(item.item_class))
+        Integer i = userContext.getAdmin();
+
+        UnitInterface unit = depots
+                .select(new DepotsAnnotationImpl(item.item_class))
                 .get()
-                .setId(item.item_id);
+                .take( item.item_id, item.quantity);
 
-        PackInterface pack = packs
-                .select(new PacksAnnotationImpl( item.shipment_type ))
-                    .get();
+        packs
+                .select(new PacksAnnotationImpl(item.shipment_type))
+                .get()
+                .add( unit, item.quantity);
 
-        pack.add( sub, good, item.quantity );
-
-        DepotInterface depot = depots
-                .select (new DepotsAnnotationImpl( good.getDepot() ) )
-                .get();
-
-        return depot.reserve( sub, good, item.quantity );
+        return bucket
+                .add( unit, item.quantity );
     }
 
     public List<CartItem> cart( )
     {
-        return cartItemsDao.getReservationsForUser(sub);
+        return bucket.get();
     }
 
     public Collection<Shipment> get_shipments()
     {
-        Integer cartWeight = deliveredPack.getWeight(sub);
+        Integer cartWeight = deliveredPack.getWeight();
 
         return shipmentDaoBean
                 .all()
@@ -96,12 +99,12 @@ public class OrdersResourceBean extends JWTService implements OrdersResource {
 
     public void clear()
     {
-        cartItemsDao.releaseAllReservationsForUser(sub);
+        bucket.clear();
     }
 
     public void remove( Collection<Integer> items )
     {
-        cartItemsDao.releaseSomeReservationsForUser(sub, items);
+        bucket.remove(items);
     }
 
     public Order make_order()
@@ -114,14 +117,14 @@ public class OrdersResourceBean extends JWTService implements OrdersResource {
         Order order = new Order();
         order.status = OrderStatus.NEW;
 
-        order.user_id = sub;
-        order.admin_id = admin;
+        order.user_id = userContext.getSub();
+        order.admin_id = userContext.getAdmin();
 
-        if( deliveredPack.isNotEmpty(sub) )
+        if( deliveredPack.isNotEmpty() )
         {
             try
             {
-                Integer weight = deliveredPack.getWeight(sub);
+                Integer weight = deliveredPack.getWeight();
                 Shipment method = shipmentDaoBean.find(addy.method);
 
                 if( weight > method.weight )
@@ -150,7 +153,7 @@ public class OrdersResourceBean extends JWTService implements OrdersResource {
         }
 
         orderDaoBean.persist( order );
-        cartItemsDao.setOrderForAllUserReservations( sub, order );
+        cartItemsDao.setOrderForAllUserReservations( userContext.getSub(), order );
 
         return order;
     }

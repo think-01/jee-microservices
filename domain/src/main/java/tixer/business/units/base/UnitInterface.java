@@ -1,15 +1,14 @@
-package tixer.business.goods.base;
+package tixer.business.units.base;
 
-import tixer.data.enums.ShipmentType;
 import tixer.data.pojo.CartItem;
 
 /**
  * Created by slawek@t01.pl on 2016-04-11.
  */
-public interface GoodInterface {
+public interface UnitInterface {
 
-    GoodInterface setId(Integer id);
-    GoodInterface setShipmentType(String shipment_type);
+    UnitInterface setId(Integer id);
+    UnitInterface setShipmentType(String shipment_type);
 
     Double getPrice();
     Double getVat();
@@ -20,4 +19,5 @@ public interface GoodInterface {
 
     String getShipmentType();
     String getDepot();
+
 }
